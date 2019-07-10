@@ -1,11 +1,21 @@
+#%%
+from os.path import basename
+from pathlib import Path
+import warnings
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
-from pandas import DataFrame
-
 from graspy.inference import LatentDistributionTest
 from graspy.simulations import sbm
 from graspy.utils import symmetrize
+from pandas import DataFrame
+from joblib import Parallel, delayed
+
+warnings.simplefilter("ignore")
+
+# get where we are just to save output figure
+folderpath = Path(__file__.replace(basename(__file__), ""))
+savepath = folderpath / "outputs"
 
 np.random.seed(8888)
 
@@ -16,11 +26,20 @@ tests = 1
 start = 50
 stop = 800
 diff = 25
+alpha = 0.05
 ns = []
 ms = []
 newms = []
 error_list = []
 temp = []
+
+
+def fit(seed):
+    np.random.seed(seed)
+    ldt = LatentDistributionTest(n_components=2, method="dcorr")
+    p = ldt.fit(A1, A2)
+    return p
+
 
 for n in range(start, stop, diff):
     ns.append(n)
@@ -29,13 +48,16 @@ for n in range(start, stop, diff):
         cm = [m // k] * k
         A1 = sbm(cn, B)
         A2 = sbm(cm, B)
-        valid = 0
-        ldt = LatentDistributionTest(n_components=2)
+        type1_errors = 0
+
+        seeds = np.random.randint(0, 1e8, tests)
         for p in range(tests):
-            p = ldt.fit(A1, A2)
-            if p < 0.05:
-                valid += 1
-        error = valid / tests
+            out = Parallel(n_jobs=-2, verbose=5)(delayed(fit)(seed) for seed in seeds)
+            out = np.array(out)
+
+            type1_errors += len(np.where(out < alpha)[0])
+
+        error = type1_errors / tests
         temp.append(error)
         ms.append(m - n)
     error_list.append(temp)
@@ -46,8 +68,13 @@ for num in ms:
         newms.append(num)
 
 df = DataFrame(error_list, index=ns, columns=newms)
-sns.heatmap(df, annot=True, linewidths=0.5)
+plt.figure(figsize=(15, 10))
+sns.set_context("talk")
+sns.heatmap(
+    df, annot=True, linewidth=0.5, cmap="Reds", square=True, vmin=0, vmax=1, cbar=True
+)
 plt.title("Variation of Type 1 Error with Different Cases of LDT")
 plt.xlabel("m - n")
 plt.ylabel("n")
-plt.show()
+plt.savefig(savepath / "ldt_nm_scaling_sweep.pdf", format="pdf", facecolor="w")
+
