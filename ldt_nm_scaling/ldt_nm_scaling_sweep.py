@@ -25,7 +25,9 @@ k = 2
 tests = 100
 start = 50
 stop = 800
-diff = 25
+diff1 = 100
+diff2 = 10
+reps = 4
 alpha = 0.05
 ns = []
 ms = []
@@ -42,9 +44,9 @@ def fit(seed):
     return p
 
 
-for n in range(start, stop, diff):
+for n in range(start, stop, diff1):
     ns.append(n)
-    for m in range(n, n + stop - start, diff):
+    for m in range(n, n + (diff2 * reps), diff2):
         print(f"Running tests for n={n}, m={m}")
         cn = [n // k] * k
         cm = [m // k] * k
