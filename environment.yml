@@ -1,0 +1,15 @@
+name: graspy_misc
+channels: 
+  - conda-forge
+dependencies:
+  - python=3.7
+  - numpy 
+  - scipy
+  - scikit-learn
+  - pandas
+  - seaborn 
+  - matplotlib 
+  - jupyter 
+  - black 
+  - flake8 
+  - rope
