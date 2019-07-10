@@ -35,6 +35,7 @@ temp = []
 
 
 def fit(seed):
+    warnings.filterwarnings("ignore")
     np.random.seed(seed)
     ldt = LatentDistributionTest(n_components=2, method="dcorr")
     p = ldt.fit(A1, A2)
@@ -44,6 +45,7 @@ def fit(seed):
 for n in range(start, stop, diff):
     ns.append(n)
     for m in range(n, n + stop - start, diff):
+        print(f"Running tests for n={n}, m={m}")
         cn = [n // k] * k
         cm = [m // k] * k
         A1 = sbm(cn, B)
@@ -52,7 +54,7 @@ for n in range(start, stop, diff):
 
         seeds = np.random.randint(0, 1e8, tests)
         for p in range(tests):
-            out = Parallel(n_jobs=-2, verbose=5)(delayed(fit)(seed) for seed in seeds)
+            out = Parallel(n_jobs=-2, verbose=0)(delayed(fit)(seed) for seed in seeds)
             out = np.array(out)
 
             type1_errors += len(np.where(out < alpha)[0])
