@@ -36,14 +36,6 @@ error_list = []
 temp = []
 
 
-def fit(seed):
-    warnings.filterwarnings("ignore")
-    np.random.seed(seed)
-    ldt = LatentDistributionTest(n_components=2, method="dcorr")
-    p = ldt.fit(A1, A2)
-    return p
-
-
 for n in range(start, stop, diff1):
     ns.append(n)
     for m in range(n, n + (diff2 * reps), diff2):
@@ -52,18 +44,22 @@ for n in range(start, stop, diff1):
         cm = [m // k] * k
         A1 = sbm(cn, B)
         A2 = sbm(cm, B)
-        type1_errors = 0
+
+        def fit(seed):
+            warnings.filterwarnings("ignore")
+            np.random.seed(seed)
+            ldt = LatentDistributionTest(n_components=2, method="dcorr")
+            p = ldt.fit(A1, A2)
+            return p
 
         seeds = np.random.randint(0, 1e8, tests)
-        for p in range(tests):
-            out = Parallel(n_jobs=-2, verbose=0)(delayed(fit)(seed) for seed in seeds)
-            out = np.array(out)
+        out = Parallel(n_jobs=-2, verbose=0)(delayed(fit)(seed) for seed in seeds)
 
-            type1_errors += len(np.where(out < alpha)[0])
-
+        type1_errors = len(np.where(out < alpha)[0])
         error = type1_errors / tests
         temp.append(error)
         ms.append(m - n)
+
     error_list.append(temp)
     temp = []
 
