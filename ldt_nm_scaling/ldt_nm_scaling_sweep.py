@@ -54,6 +54,7 @@ for n in range(start, stop, diff1):
 
         seeds = np.random.randint(0, 1e8, tests)
         out = Parallel(n_jobs=-2, verbose=0)(delayed(fit)(seed) for seed in seeds)
+        out = np.array(out)
 
         type1_errors = len(np.where(out < alpha)[0])
         error = type1_errors / tests
