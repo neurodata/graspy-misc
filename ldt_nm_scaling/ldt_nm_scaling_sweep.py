@@ -11,7 +11,7 @@ from graspy.utils import symmetrize
 from pandas import DataFrame
 from joblib import Parallel, delayed
 
-warnings.simplefilter("ignore")
+warnings.filterwarnings("ignore")
 
 # get where we are just to save output figure
 folderpath = Path(__file__.replace(basename(__file__), ""))
@@ -22,7 +22,7 @@ np.random.seed(8888)
 B = [[0.5, 0.2], [0.2, 0.05]]
 B = symmetrize(B)
 k = 2
-tests = 1
+tests = 100
 start = 50
 stop = 800
 diff = 25
