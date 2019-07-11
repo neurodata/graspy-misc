@@ -41,7 +41,9 @@ for n in range(start, stop, diff1):
     for m in range(n, n + (diff2 * reps), diff2):
         print(f"Running tests for n={n}, m={m}")
         cn = [n // k] * k
+        print(cn)
         cm = [m // k] * k
+        print(cm)
 
         def fit(seed):
             np.random.seed(seed)
@@ -60,6 +62,7 @@ for n in range(start, stop, diff1):
         print(out)
         type1_errors = len(np.where(out < alpha)[0])
         error = type1_errors / tests
+        print(f"Error was {error}")
         temp.append(error)
         ms.append(m - n)
 
