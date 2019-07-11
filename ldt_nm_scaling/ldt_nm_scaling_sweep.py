@@ -75,7 +75,6 @@ for num in ms:
 
 df = DataFrame(error_list, index=ns, columns=newms)
 plt.figure(figsize=(15, 10))
-sns.set_context("talk")
 sns.heatmap(
     df, annot=True, linewidth=0.5, cmap="Reds", square=True, vmin=0, vmax=1, cbar=True
 )
