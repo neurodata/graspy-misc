@@ -22,7 +22,7 @@ np.random.seed(8888)
 B = [[0.5, 0.2], [0.2, 0.05]]
 B = symmetrize(B)
 k = 2
-tests = 100
+tests = 1
 start = 50
 stop = 500
 diff1 = 50
@@ -82,4 +82,4 @@ plt.title("Variation of Type 1 Error with Different Cases of LDT")
 plt.xlabel("m - n")
 plt.ylabel("n")
 plt.savefig(savepath / "ldt_nm_scaling_sweep.pdf", format="pdf", facecolor="w")
-
+df.to_csv(savepath / "ldt_nm_scaling_sweep.csv")
