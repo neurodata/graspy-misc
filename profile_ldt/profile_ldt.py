@@ -44,22 +44,4 @@ plt.xlabel("P-value")
 plt.title(f"n_sims: {n_sims}, n_verts: {n_verts}, n_components: {n_components}")
 
 
-# #%%
-# from mgcpy.independence_tests.dcorr import DCorr
-# from mgcpy.hypothesis_tests.transforms import k_sample_transform
-
-# n_sims = 10000
-# p_vals = np.zeros(n_sims)
-# for i in tqdm(range(n_sims)):
-#     latent1 = np.random.uniform(0.2, 0.7, size=latent_size)
-#     latent2 = np.random.uniform(0.2, 0.7, size=latent_size)
-
-#     sample, indicator = k_sample_transform(latent1, latent2)
-#     test = DCorr("unbiased")
-#     p, p_meta = test.p_value(sample, indicator, replication_factor=1000, is_fast=False)
-#     p_vals[i] = p
-# sns.distplot(p_vals)
-# #%%
-
-
 #%%
