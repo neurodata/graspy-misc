@@ -8,7 +8,7 @@ from tqdm import tqdm
 from mgcpy.hypothesis_tests.transforms import k_sample_transform
 from mgcpy.independence_tests.dcorr import DCorr
 
-n_sims = 500
+n_sims = 1000
 n_verts = 200
 n_components = 3
 n_permutations = 1000
@@ -22,7 +22,9 @@ for i in tqdm(range(n_sims)):
 
     sample, indicator = k_sample_transform(latent1, latent2)
     test = DCorr("unbiased")
-    p, p_meta = test.p_value(sample, indicator, replication_factor=1000, is_fast=False)
+    p, p_meta = test.p_value(
+        sample, indicator, replication_factor=n_permutations, is_fast=False
+    )
     p_vals[i] = p
 plt.figure()
 sns.distplot(p_vals)
@@ -35,7 +37,7 @@ for i in tqdm(range(n_sims)):
     latent1 = np.random.uniform(0.2, 0.7, size=latent_size)
     latent2 = np.random.uniform(0.2, 0.7, size=latent_size)
     sample, indicator = k_sample_transform(latent1, latent2)
-    out = distance_covariance_test(sample, indicator, num_resamples=1000)
+    out = distance_covariance_test(sample, indicator, num_resamples=n_permutations)
     p_vals[i] = out.p_value
 
 plt.figure()
