@@ -8,35 +8,42 @@ from tqdm import tqdm
 from mgcpy.hypothesis_tests.transforms import k_sample_transform
 from mgcpy.independence_tests.dcorr import DCorr
 
-n_sims = 1000
-n_verts = 200
-n_components = 3
+np.random.seed(8888)
+plt.style.use("seaborn-white")
+sns.set_palette("deep")
+
+n_sims = 10000
+n_verts = 100
+n_components = 2
 n_permutations = 1000
-latent_size = (n_verts, n_components)
+size = (n_verts, n_components)
 directed = False
 
+#%% mgcpy package
 p_vals = np.zeros(n_sims)
 for i in tqdm(range(n_sims)):
-    latent1 = np.random.uniform(0.2, 0.7, size=latent_size)
-    latent2 = np.random.uniform(0.2, 0.7, size=latent_size)
+    sample1 = np.random.uniform(0.2, 0.7, size=size)
+    sample2 = np.random.uniform(0.2, 0.7, size=size)
 
-    sample, indicator = k_sample_transform(latent1, latent2)
-    test = DCorr("unbiased")
+    sample, indicator = k_sample_transform(sample1, sample2)
+    test = DCorr(which_test="biased")
     p, p_meta = test.p_value(
         sample, indicator, replication_factor=n_permutations, is_fast=False
     )
     p_vals[i] = p
+
 plt.figure()
 sns.distplot(p_vals)
 plt.title("MGCPy DCorr, 2-sample under null")
 plt.xlabel("p-value")
-plt.savefig("graspy-misc/profile_dcorr/mgcpy_dcorr.png")
+plt.savefig("graspy-misc/profile_dcorr/mgcpy_dcorr.png", facecolor="w")
 
+#%% dcor package
 p_vals = np.zeros(n_sims)
 for i in tqdm(range(n_sims)):
-    latent1 = np.random.uniform(0.2, 0.7, size=latent_size)
-    latent2 = np.random.uniform(0.2, 0.7, size=latent_size)
-    sample, indicator = k_sample_transform(latent1, latent2)
+    sample1 = np.random.uniform(0.2, 0.7, size=size)
+    sample2 = np.random.uniform(0.2, 0.7, size=size)
+    sample, indicator = k_sample_transform(sample1, sample2)
     out = distance_covariance_test(sample, indicator, num_resamples=n_permutations)
     p_vals[i] = out.p_value
 
@@ -44,5 +51,5 @@ plt.figure()
 sns.distplot(p_vals)
 plt.title("dcor, 2-sample under null")
 plt.xlabel("p-value")
-plt.savefig("graspy-misc/profile_dcorr/dcor.png")
+plt.savefig("graspy-misc/profile_dcorr/dcor.png", facecolor="w")
 

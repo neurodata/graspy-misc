@@ -6,9 +6,9 @@ from graspy.inference import LatentDistributionTest
 from graspy.simulations import p_from_latent, sample_edges
 from tqdm import tqdm
 
-n_sims = 1000
+n_sims = 200
 n_verts = 200
-n_components = 3
+n_components = 2
 latent_size = (n_verts, n_components)
 directed = False
 latent = np.random.uniform(0.2, 0.5, size=latent_size)
