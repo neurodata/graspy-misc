@@ -14,6 +14,7 @@ from src.utils import n_to_labels
 
 folderpath = Path(__file__.replace(basename(__file__), ""))
 savepath = folderpath / "outputs" / "k_change_q_change" / "ASE" / "KMeans"
+
 #2 methods for k
 const_k = 2
 def linear_k(slope, n):
@@ -75,9 +76,9 @@ plt.errorbar(n_verts,
              marker='s',
              mfc='red',
              mec='green')
-plt.title(f"p = {p} q = {slope} / n_verts")
+plt.title(f"p = {p} q = {const_q}")
 plt.xlabel("n_verts")
 plt.xticks(n_verts)
 plt.ylabel("ARI")
 plt.show()
-plt.savefig(savepath / f"n{n_verts[0]}-{n_verts[len(n_verts)-1]}_sl{slope}_p{p}_s{n_sims}.pdf")
+plt.savefig(folderpath / f"n{n_verts[0]}-{n_verts[len(n_verts)-1]}_sl{slope}_p{p}_s{n_sims}.pdf")
