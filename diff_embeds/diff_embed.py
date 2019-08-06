@@ -44,30 +44,27 @@ def avg_ari(slope, n_verts, n_sims, p, embed):
             labels_sbm = n_to_labels(cn).astype(int)
             G = sbm(cn, B)
 
-            #embedding
+            #embedding and clustering
             Xhat = embed.fit_transform(G)
-
-            #clustering
             clust = KMeans(n_clusters = k)
             labels_clust = clust.fit_predict(Xhat)
             ari = adjusted_rand_score(labels_sbm, labels_clust)
             temp.append(ari)
-            print("{}: {}".format(n, ari))
+            print("n_verts: {} ARI: {}".format(n, ari))
+
         ari_vals.append(np.sum(temp) / n_sims)
         stand_error.append(stats.sem(temp))
         temp = []     
-    return(ari_vals, stand_error)
+    return ari_vals, stand_error
 
 #Variables
-slope = 25
+slope = 35
 p = 0.5
-n_verts = [50, 75, 100, 125, 150, 175, 200]
+n_verts = [70, 105, 140, 175, 210, 245, 280, 315, 350]
 n_sims = 35
 embed = AdjacencySpectralEmbed()
 
 ari_vals, stand_error = avg_ari(slope, n_verts, n_sims, p, embed)
-print(ari_vals)
-print(stand_error)
 plt.errorbar(n_verts, 
              ari_vals, 
              yerr=stand_error,
