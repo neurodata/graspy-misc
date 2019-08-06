@@ -1,3 +1,5 @@
+from os.path import basename
+from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np 
 import seaborn as sns
@@ -10,6 +12,8 @@ from sklearn.cluster import KMeans
 from sklearn.mixture import GaussianMixture
 from src.utils import n_to_labels
 
+folderpath = Path(__file__.replace(basename(__file__), ""))
+savepath = folderpath / "outputs" / "k_change_q_change" / "ASE" / "KMeans"
 #2 methods for k
 const_k = 2
 def linear_k(slope, n):
@@ -58,11 +62,11 @@ def avg_ari(slope, n_verts, n_sims, p, embed):
     return ari_vals, stand_error
 
 #Variables
+n_verts = [70, 105, 140, 175, 210, 245, 280, 315, 350]
 slope = 35
 p = 0.5
-n_verts = [70, 105, 140, 175, 210, 245, 280, 315, 350]
-n_sims = 35
-embed = AdjacencySpectralEmbed()
+n_sims = 30
+embed = LaplacianSpectralEmbed()
 
 ari_vals, stand_error = avg_ari(slope, n_verts, n_sims, p, embed)
 plt.errorbar(n_verts, 
@@ -71,8 +75,9 @@ plt.errorbar(n_verts,
              marker='s',
              mfc='red',
              mec='green')
-plt.title("kchange_qchange_ASE_KMeans")
+plt.title(f"p = {p} q = {slope} / n_verts")
 plt.xlabel("n_verts")
 plt.xticks(n_verts)
 plt.ylabel("ARI")
 plt.show()
+plt.savefig(savepath / f"n{n_verts[0]}-{n_verts[len(n_verts)-1]}_sl{slope}_p{p}_s{n_sims}.pdf")
