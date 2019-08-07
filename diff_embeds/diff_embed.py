@@ -2,11 +2,10 @@ from os.path import basename
 from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np 
-import seaborn as sns
 from scipy import stats
 from graspy.simulations import sbm
 from graspy.embed import AdjacencySpectralEmbed, LaplacianSpectralEmbed
-from graspy.plot import heatmap, pairplot
+from graspy.plot import heatmap
 from sklearn.metrics import adjusted_rand_score
 from sklearn.cluster import KMeans
 from sklearn.mixture import GaussianMixture
