@@ -13,7 +13,7 @@ from sklearn.mixture import GaussianMixture
 from src.utils import n_to_labels
 
 folderpath = Path(__file__.replace(basename(__file__), ""))
-savepath = folderpath / "outputs" / "k_change_q_change" / "ASE" / "KMeans"
+savepath = folderpath / "outputs" 
 
 #2 methods for k
 const_k = 2
@@ -63,22 +63,31 @@ def avg_ari(slope, n_verts, n_sims, p, embed):
     return ari_vals, stand_error
 
 #Variables
-n_verts = [70, 105, 140, 175, 210, 245, 280, 315, 350]
-slope = 35
+n_verts = [40, 60, 80, 100, 120, 140, 160, 180, 200]
+slope = 20
 p = 0.5
 n_sims = 30
-embed = LaplacianSpectralEmbed()
-
+embed = AdjacencySpectralEmbed()
+embed1 = LaplacianSpectralEmbed()
 ari_vals, stand_error = avg_ari(slope, n_verts, n_sims, p, embed)
+ari_vals1, stand_error1 = avg_ari(slope, n_verts, n_sims, p, embed1)
+
 plt.errorbar(n_verts, 
              ari_vals, 
              yerr=stand_error,
              marker='s',
              mfc='red',
-             mec='green')
-plt.title(f"p = {p} q = {const_q}")
+             label="ASE")
+plt.errorbar(n_verts, 
+             ari_vals1, 
+             yerr=stand_error1,
+             marker='s',
+             mfc='blue',
+             label="LSE")
+plt.title(f"n_verts = {n_verts[0]}-{n_verts[len(n_verts)-1]}, k = n_verts / {slope}, p = {p}, q = {slope} / n_verts,")
 plt.xlabel("n_verts")
 plt.xticks(n_verts)
 plt.ylabel("ARI")
+plt.legend(loc='upper left')
+plt.savefig(savepath / "ASEvsLSE_KMeans.pdf")
 plt.show()
-plt.savefig(folderpath / f"n{n_verts[0]}-{n_verts[len(n_verts)-1]}_sl{slope}_p{p}_s{n_sims}.pdf")
