@@ -63,7 +63,8 @@ def avg_ari(slope, n_verts, n_sims, p, embed):
 
 #Variables
 n_verts = [80, 120, 160, 200, 240, 280, 320, 360, 400]
-slope = 40
+slope = n_verts[0] / 2
+print(slope)
 p = 0.5
 n_sims = 30
 embed = AdjacencySpectralEmbed()
