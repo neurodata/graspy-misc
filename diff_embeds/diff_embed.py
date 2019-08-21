@@ -41,8 +41,8 @@ def avg_ari(slope, n_verts, n_sims, p, embed):
     #Generate graph
     for n in n_verts:
         for _ in range(n_sims):
-            k = const_k
-            q = decay_q(slope, n)
+            k = linear_k(slope, n)
+            q = const_q
             B = B_matrix(k, p, q)
             cn = [n//k] * k
             labels_sbm = n_to_labels(cn).astype(int)
@@ -64,7 +64,6 @@ def avg_ari(slope, n_verts, n_sims, p, embed):
 #Variables
 n_verts = [80, 120, 160, 200, 240, 280, 320, 360, 400]
 slope = n_verts[0] / 2
-print(slope)
 p = 0.5
 n_sims = 30
 embed = AdjacencySpectralEmbed()
@@ -84,10 +83,10 @@ plt.errorbar(n_verts,
              marker='s',
              mfc='blue',
              label="LSE")
-plt.title(f"k = n_verts / {slope}, p = {p}, q = {slope} / n_verts")
+plt.title(f"k = n_verts / {slope}, p = {p}, q = {const_q}")
 plt.xlabel("n_verts")
 plt.xticks(n_verts)
 plt.ylabel("ARI")
 plt.legend(loc='upper left')
-plt.savefig(savepath / "kconst_qchange_ASEvsLSE_KMeans.pdf")
+plt.savefig(savepath / "kchange_qconst_ASEvsLSE_KMeans.pdf")
 plt.show()
