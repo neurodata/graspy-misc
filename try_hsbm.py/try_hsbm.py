@@ -105,3 +105,5 @@ heatmap(
 
 adjusted_rand_score(block_labels, outer_labels)
 
+
+#%%
