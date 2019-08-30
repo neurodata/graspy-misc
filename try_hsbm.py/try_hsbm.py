@@ -1,21 +1,24 @@
 #%%
-import numpy as np
-from sklearn.metrics import adjusted_rand_score
 
-from graspy.embed import AdjacencySpectralEmbed
-from graspy.models import HSBMEstimator
-from graspy.plot import heatmap, pairplot
-from graspy.simulations import er_np, sbm
-
-#%%
 import numpy as np
 import seaborn as sns
+
+from colormap.colors import Colormap
 from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+
 from scipy.cluster.hierarchy import dendrogram, linkage
 from sklearn.cluster import AgglomerativeClustering
 from sklearn.datasets import load_iris
+from sklearn.metrics import adjusted_rand_score
 from sklearn.metrics.pairwise import euclidean_distances
+
+from graspy.embed import AdjacencySpectralEmbed, ClassicalMDS
+from graspy.models import HSBMEstimator
+
+# plot_agglomerative(model, dists, dendrogram_size="30%")
+from graspy.plot import heatmap, hierplot, pairplot
+from graspy.simulations import er_np, sbm
 
 
 def plot_dendrogram(model, **kwargs):
@@ -125,6 +128,7 @@ prop = np.array(
 )
 
 B_list = [B1, B2, B3, B1, B3, B3, B2, B1]
+# B_list = [B1, B2, B1, B1, B3, B3, B1, B2]
 
 graph = er_np(n_verts, global_p)
 for i, n_sub_verts in enumerate(n):
@@ -137,7 +141,7 @@ for i, n_sub_verts in enumerate(n):
     graph[np.ix_(inds, inds)] = subgraph
 
 heatmap(graph, figsize=(15, 15), cbar=False)
-
+plt.savefig("raw_heatmap.png", facecolor="w")
 #%%
 n_components = 8
 ase = AdjacencySpectralEmbed(n_components=n_components)
@@ -147,7 +151,6 @@ pairplot(latent, labels=block_labels)
 latent /= np.linalg.norm(latent, axis=1)[:, np.newaxis]
 pairplot(latent, labels=block_labels)
 
-from graspy.embed import ClassicalMDS
 
 # def compute_cosine_similarity(latent):
 #     for i in range(latent.shape[0])
@@ -158,21 +161,29 @@ cmds = ClassicalMDS(n_components=n_components - 1, dissimilarity="precomputed")
 cmds_latent = cmds.fit_transform(dissimilarity)
 pairplot(cmds_latent, labels=block_labels)
 #%%
-hsbm = HSBMEstimator(n_subgraphs=8, n_subgroups=3)
+hsbm = HSBMEstimator(
+    n_subgraphs=8, n_subgroups=3, n_components_lvl1=8, n_components_lvl2=3
+)
 hsbm.fit(graph)
 #%%
 plt.style.use("seaborn-white")
 model = hsbm.agglomerative_model_
 dists = hsbm.subgraph_dissimilarities_
 dists = dists - dists.min()
-plot_agglomerative(model, dists, dendrogram_size="30%")
+
+c = Colormap()
+cmap = c.get_cmap_heat_r()
+heatmap_kws = dict(cmap=cmap)
+hierplot(dists, heatmap_kws=heatmap_kws, dendrogram_size="30%")
+plt.savefig("show_heatmap.png", facecolor="w")
+plt.figure()
+sns.heatmap(dists)
+#%%
+
 #%%
 data = load_iris().data
 dists = euclidean_distances(data)
 plot_agglomerative(model, dists, figsize=(20, 20))
-#%%
-from scipy.cluster.hierarchy import dendrogram
-from scipy.cluster.hierarchy import linkage
 
 plt.figure(figsize=(10, 10))
 cond_inds = np.triu_indices_from(dists, k=1)
@@ -187,12 +198,36 @@ heatmap(
     graph,
     figsize=(15, 15),
     cbar=False,
-    outer_hier_labels=inner_labels,
-    inner_hier_labels=outer_labels,
+    outer_hier_labels=outer_labels,
+    inner_hier_labels=inner_labels,
 )
 
-
+plt.savefig("sorted_graph_heatmap.png", facecolor="w")
 adjusted_rand_score(block_labels, outer_labels)
 
 
+c = Colormap()
+cmap = c.get_cmap_heat()
+heatmap_kws = dict(cmap=cmap)
+hierplot(dists, heatmap_kws=heatmap_kws)
+
+
 #%%
+
+import community as louvain
+import networkx as nx
+
+nx_graph = nx.Graph(graph)
+dendrogram_list = louvain.generate_dendrogram(nx_graph, resolution=0.05)
+len(dendrogram_list)
+dendro_labels = np.zeros((2, graph.shape[0]))
+for i, d in enumerate(dendrogram_list):
+    for key, val in d.items():
+        dendro_labels[i, key] = val
+heatmap(graph, inner_hier_labels=dendro_labels[0], outer_hier_labels=dendro_labels[1])
+#%%
+comm_labels = louvain.best_partition(nx_graph, resolution=0.5)
+labels = np.zeros(graph.shape[0])
+for key, val in comm_labels.items():
+    labels[key] = val
+heatmap(graph, inner_hier_labels=labels)
