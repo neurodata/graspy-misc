@@ -31,6 +31,8 @@ sns.set_context("talk", font_scale=1.5)
 sns.set_palette("Set1")
 n = 200
 n_per_block = n // 2
+rot_mat = np.array([[-1, 0], [0, -1]])
+
 
 point1 = np.array([0.15, 0.6])
 point2 = np.array([0.6, 0.15])
@@ -42,7 +44,6 @@ latent1 = np.tile(point1, (n_per_block, 1))
 latent1 = np.concatenate((latent1, np.tile(point2, (n_per_block, 1))))
 
 latent2 = latent1.copy()
-# rot_mat = np.array([[-1, 0], [0, -1]])
 # latent2 = latent2 @ rot_mat
 
 latent3 = np.tile(point2, (n_per_block, 1))
