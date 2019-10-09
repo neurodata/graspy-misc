@@ -12,12 +12,11 @@ np.random.seed(8888)
 plt.style.use("seaborn-white")
 sns.set_palette("deep")
 
-n_sims = 10000
-n_verts = 100
+n_sims = 100
+n_samples = 100
 n_components = 2
 n_permutations = 1000
-size = (n_verts, n_components)
-directed = False
+size = (n_samples, n_components)
 
 #%% mgcpy package
 p_vals = np.zeros(n_sims)
@@ -26,7 +25,7 @@ for i in tqdm(range(n_sims)):
     sample2 = np.random.uniform(0.2, 0.7, size=size)
 
     sample, indicator = k_sample_transform(sample1, sample2)
-    test = DCorr(which_test="biased")
+    test = DCorr(which_test="unbiased")
     p, p_meta = test.p_value(
         sample, indicator, replication_factor=n_permutations, is_fast=False
     )
@@ -34,9 +33,28 @@ for i in tqdm(range(n_sims)):
 
 plt.figure()
 sns.distplot(p_vals)
-plt.title("MGCPy DCorr, 2-sample under null")
+plt.title("MGCPy DCorr, 2-sample under null, unbiased, not fast")
 plt.xlabel("p-value")
 plt.savefig("graspy-misc/profile_dcorr/mgcpy_dcorr.png", facecolor="w")
+
+#%% mgcpy with is_fast=True
+# p_vals = np.zeros(n_sims)
+# for i in tqdm(range(n_sims)):
+#     sample1 = np.random.uniform(0.2, 0.7, size=size)
+#     sample2 = np.random.uniform(0.2, 0.7, size=size)
+
+#     sample, indicator = k_sample_transform(sample1, sample2)
+#     test = DCorr(which_test="unbiased")
+#     p, p_meta = test.p_value(
+#         sample, indicator, replication_factor=n_permutations, is_fast=True
+#     )
+#     p_vals[i] = p
+
+# plt.figure()
+# sns.distplot(p_vals)
+# plt.title("MGCPy DCorr, 2-sample under null, unbiased, not fast")
+# plt.xlabel("p-value")
+# plt.savefig("graspy-misc/profile_dcorr/mgcpy_dcorr.png", facecolor="w")
 
 #%% dcor package
 p_vals = np.zeros(n_sims)
