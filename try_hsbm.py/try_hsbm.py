@@ -109,7 +109,6 @@ B2 = np.array([[0.4, 0.25, 0.25], [0.25, 0.4, 0.25], [0.25, 0.25, 0.4]])
 B3 = np.array([[0.25, 0.2, 0.2], [0.2, 0.8, 0.2], [0.2, 0.2, 0.25]])
 
 n = np.array([300, 600, 600, 600, 700, 600, 300, 400]).astype(float)
-# n *= 1 / 5
 n = n.astype(int)
 block_labels = n_to_labels(n)
 n_verts = np.sum(n)
