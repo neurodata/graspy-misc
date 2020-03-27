@@ -1,5 +1,5 @@
 # %% [markdown]
-# # Imports
+# # Using Joblib reproducibly
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -12,7 +12,9 @@ from sklearn.metrics import adjusted_rand_score
 from sklearn.mixture import GaussianMixture
 
 # %% [markdown]
-# # Simple for loop to get random numbers
+# # Getting random numbers
+# The following is one of the simplest ways that one could generate many random
+# numbers, which are useful in almost any scientific computing application
 
 np.random.seed(8888)
 
@@ -26,6 +28,8 @@ print(outs)
 
 # %% [markdown]
 # # Make the above stuff in my for loop into a function
+# The first step to getting to something we can do in Joblib is to turn the stuff
+# we had in a for loop into a function
 
 
 def _get_big_number():
@@ -44,8 +48,17 @@ print(outs)
 
 
 # %% [markdown]
-# # Do the same thing but in parallel
+# # Now, do it in parallel
+# With Joblib, parallelizing the above is super easy!
 
+np.random.seed(8888)
+par = Parallel(n_jobs=8)
+outs = par(delayed(_get_big_number)() for _ in range(n_numbers))
+print(outs)
+
+
+# %% [markdown]
+# # But is it reproducible?
 np.random.seed(8888)
 par = Parallel(n_jobs=8)
 outs = par(delayed(_get_big_number)() for _ in range(n_numbers))
@@ -54,6 +67,10 @@ print(outs)  # note that now we don't get reproducible results!
 
 # %% [markdown]
 # # Get random numbers in parallel, reproducibly
+# Even when setting the random seed in the above, we did not get reproducible results.
+# To make this happen, I usually just start by generating a long list of random seeds
+# (starting from a random seed, of course) and then pass those seeds down to the
+# individual jobs.
 
 np.random.seed(8888)
 seeds = np.random.randint(1e8, size=n_numbers)
@@ -69,11 +86,22 @@ outs = par(delayed(_get_big_reproducible_number)(seed) for seed in seeds)
 print(outs)
 
 # %% [markdown]
+# # Check that we now get reproducible results
+
+np.random.seed(8888)
+seeds = np.random.randint(1e8, size=n_numbers)
+
+par = Parallel(n_jobs=4)
+outs = par(delayed(_get_big_reproducible_number)(seed) for seed in seeds)
+print(outs)
+
+
+# %% [markdown]
 # # Simple demo with Gaussian blobs
 
 
 def generate_data(n_samples=300):
-    X, y = make_blobs(n_samples=n_samples, cluster_std=2)
+    X, y = make_blobs(n_samples=n_samples, cluster_std=2.5)
     transformation = [[0.6, -0.6], [-0.4, 0.8]]
     X_aniso = np.dot(X, transformation)
     aniso = (X_aniso, y)
@@ -98,6 +126,7 @@ ax.axis("off")
 
 # %% [markdown]
 # # Look at the performance of two different clustering algorithms
+# Here we'll just look at a single dataset and see how K-means and GMM perform
 
 gmm = GaussianMixture(n_components=3, covariance_type="full")
 gmm_pred_labels = gmm.fit_predict(X)
@@ -113,7 +142,7 @@ print(f"K-means ARI: {kmeans_ari}")
 plot_df["KMeans"] = kmeans_pred_labels
 plot_df["GMM"] = gmm_pred_labels
 
-fig, axs = plt.subplots(1, 2, figsize=(8, 4))
+fig, axs = plt.subplots(1, 2, figsize=(10, 5))
 sns.scatterplot(
     data=plot_df,
     x=0,
@@ -121,6 +150,7 @@ sns.scatterplot(
     hue="KMeans",
     ax=axs[0],
     palette=sns.color_palette("Set1", plot_df["KMeans"].nunique()),
+    s=40,
 )
 sns.scatterplot(
     data=plot_df,
@@ -129,6 +159,7 @@ sns.scatterplot(
     hue="GMM",
     ax=axs[1],
     palette=sns.color_palette("Set1", plot_df["KMeans"].nunique()),
+    s=40,
 )
 axs[0].axis("off")
 axs[0].set_title(f"ARI: {kmeans_ari}")
@@ -138,31 +169,45 @@ axs[1].set_title(f"ARI: {gmm_ari}")
 
 # %% [markdown]
 # # Now run an actual experiment over many random inits
+# Here is an example of how we could profile the performance of these two algorithms
+# over many random samples using Joblib
 
 
 def run_experiment(seed):
     np.random.seed(seed)
     X, y = generate_data()
 
-    gmm = GaussianMixture(n_components=3, covariance_type="full", n_init=10)
+    gmm = GaussianMixture(n_components=3, covariance_type="full", n_init=20)
     gmm_pred_labels = gmm.fit_predict(X)
     gmm_ari = adjusted_rand_score(y, gmm_pred_labels)
 
-    kmeans = KMeans(n_clusters=3)
+    kmeans = KMeans(n_clusters=3, n_init=20)
     kmeans_pred_labels = kmeans.fit_predict(X)
     kmeans_ari = adjusted_rand_score(y, kmeans_pred_labels)
 
-    return {"KMeans": kmeans_ari, "GMM": gmm_ari}
+    return gmm_ari - kmeans_ari
 
 
 np.random.seed(8888)
-n_sims = 10
+n_sims = 40
 seeds = np.random.randint(1e8, size=n_sims)  # random
-# seeds = np.ones(n_sims, dtype=int) # not random
+# seeds = np.ones(n_sims, dtype=int) # uncomment for not random
 par = Parallel(n_jobs=2)
-outs = par(delayed(run_experiment)(seed) for seed in seeds)
-ari_df = pd.DataFrame(outs)
-ari_df = ari_df.melt(var_name="Method", value_name="ARI")
+ari_diffs = par(delayed(run_experiment)(seed) for seed in seeds)
 
-sns.stripplot(data=ari_df, x="Method", y="ARI")
-
+fig, ax = plt.subplots(1, 1, figsize=(8, 4))
+ax.axvline(0, linewidth=2, linestyle="--", color="red")
+sns.distplot(ari_diffs, norm_hist=False)
+sns.rugplot(ari_diffs)
+xlim = ax.get_xlim()
+ylim = ax.get_ylim()
+y_range = ylim[1] - ylim[0]
+ypos = ylim[0] + y_range * 0.75
+x_range = xlim[1] - xlim[0]
+ax.text(xlim[0] + 0.05 * x_range, ypos, "KMeans \n better")
+ax.text(xlim[1] - 0.05 * x_range, ypos, "GMM \n better", horizontalalignment="right")
+ax.spines["left"].set_visible(False)
+ax.spines["right"].set_visible(False)
+ax.spines["top"].set_visible(False)
+ax.set_yticks([])
+ax.set_xlabel("(GMM - KMeans) ARI")
