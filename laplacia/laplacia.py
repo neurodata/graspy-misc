@@ -8,6 +8,7 @@ import numpy as np
 from graspy.utils import to_laplace
 import matplotlib as mpl
 
+
 sns.set_context("talk")
 mpl.rcParams["axes.spines.right"] = False
 mpl.rcParams["axes.spines.top"] = False
@@ -78,3 +79,6 @@ fig, axs = plt.subplots(3, 2, figsize=(10, 6))
 sns.scatterplot(data=evec_df, x="x", y=0, ax=axs[0, 1], hue="label", palette=pal)
 sns.scatterplot(data=evec_df, x="x", y=1, ax=axs[1, 1], hue="label", palette=pal)
 sns.scatterplot(data=evec_df, x="x", y=2, ax=axs[2, 1], hue="label", palette=pal)
+
+
+# %%
