@@ -8,8 +8,6 @@ from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 import colorcet as cc
 
-print(sns.__version__)
-
 sns.set_context("talk")
 
 palette_nums = {
