@@ -131,7 +131,7 @@ lse_embed = lse.fit_transform(adj)
 rlse_embed = rlse.fit_transform(adj)
 embeddings_list = [ase_embed, lse_embed, rlse_embed]
 
-remove_first = True
+remove_first = False
 for i, embedding in enumerate(embeddings_list):
     if remove_first:
         embeddings_list[i] = embedding[:, 1:]
@@ -203,3 +203,108 @@ for method, plot_df in plot_dfs.items():
         ax.axhline(0, color="grey", linewidth=1, linestyle="--")
     fig.suptitle(method, y=0.93)
     axs[1, 0].set_xlabel("Degree", x=1.1, labelpad=10)
+
+# %% [markdown]
+# ##
+from sklearn.metrics import pairwise_distances
+
+
+def normalize(X):
+    X = X.copy()
+    norms = np.linalg.norm(X, axis=0)
+    X = X / norms[None, :]
+    return X
+
+
+# ase_embed = embeddings["ase"]
+ase_embed = AdjacencySpectralEmbed(
+    n_components=4, algorithm="full", check_lcc=False, diag_aug=False
+).fit_transform(adj)
+ase_embed = normalize(ase_embed)
+
+lse_embed = LaplacianSpectralEmbed(
+    n_components=4, algorithm="full", check_lcc=False, form="DAD"
+).fit_transform(adj)
+lse_embed = normalize(lse_embed)
+
+
+def compute_angles(X, Y):
+    X = normalize(X)
+    Y = normalize(Y)
+    pdists = X.T @ Y
+    same_dists = np.diag(np.abs(pdists))
+    angles = np.arccos(same_dists)
+    return angles
+
+
+rows = []
+for tau in np.geomspace(0.001, 10000000, 20):
+    lse = LaplacianSpectralEmbed(
+        form="R-DAD", n_components=4, regularizer=tau, check_lcc=False, algorithm="full"
+    )
+    rlse_embed = lse.fit_transform(adj)
+
+    angles_to_ase = compute_angles(rlse_embed, ase_embed)
+    row = dict(zip([str(i) for i in range(k)], angles_to_ase))
+    row["tau"] = tau
+    row["log_tau"] = np.log(tau)
+    row["angle_to"] = "ase"
+    rows.append(row)
+
+    angles_to_lse = compute_angles(rlse_embed, lse_embed)
+    row = dict(zip([str(i) for i in range(k)], angles_to_lse))
+    row["tau"] = tau
+    row["log_tau"] = np.log(tau)
+    row["angle_to"] = "lse"
+    rows.append(row)
+
+angle_df = pd.DataFrame(rows)
+
+#%%
+fig, axs = plt.subplots(2, 2, figsize=(16, 8), sharex=True)
+axs = axs.ravel()
+for i in range(k):
+    ax = axs[i]
+    sns.lineplot(data=angle_df, x="tau", y=f"{i}", hue="angle_to", ax=ax)
+    ax.axvline(mean_degree, linewidth=1.5, linestyle="--", color="darkred")
+    handles, labels = ax.get_legend_handles_labels()
+    ax.get_legend().remove()
+axs[1].legend(
+    handles=handles,
+    labels=labels,
+    loc="upper left",
+    bbox_to_anchor=(
+        1,
+        1,
+    ),
+)
+axs[0].text(mean_degree, 0.35, "Mean degree", ha="center")
+ax.set_xscale("log")
+plt.tight_layout()
+
+# %% [markdown]
+# ##
+import seaborn as sns
+import numpy as np
+import pandas as pd
+
+array1 = np.random.normal(loc=0, size=(10, 2))
+array2 = np.random.normal(loc=1, size=(10, 2))
+array = np.concatenate((array1, array2))
+plot_df = pd.DataFrame(data=array)
+plot_df["labels"] = [0] * 10 + [1] * 10
+sns.scatterplot(data=plot_df, x=0, y=1, hue="labels")
+
+# %% [markdown]
+# ##
+
+df = pd.DataFrame(
+    {
+        "foo": ["one", "one", "one", "two", "two", "two"],
+        "bar": ["A", "B", "C", "A", "B", "C"],
+        "baz": [1, 2, 3, 4, 5, 6],
+        "zoo": ["x", "y", "z", "q", "w", "t"],
+    }
+)
+
+df.pivot(index="foo", columns="baz", values="bar")
