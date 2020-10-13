@@ -120,8 +120,8 @@ for i in range(n_init):
     error_norm = np.linalg.norm(X_rot @ Q.T - X_rot @ Q_hat_inv)
     print(error_norm)
 
-# %% [markdown] 
-# ## 
+# %% [markdown]
+# ##
 
 # %% [markdown]
 # ## TODO
@@ -130,4 +130,3 @@ for i in range(n_init):
 # - have one plot showing error norm for each of the 3 initialization methods
 # - in a model where points have a true correspondence (e.g. 2 noisy observations from
 # same point on the manifold, or two vertices that are corr-RDPG) look at "recall by k"
-
